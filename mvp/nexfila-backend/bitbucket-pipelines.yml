@@ -1,0 +1,9 @@
+pipelines:
+  branches:
+    master:
+      - step:
+          name: Deploy para producao
+          script:
+            - ssh root@2.24.125.227 "cd /opt/nexfila-frontend && git pull"
+            - ssh root@2.24.125.227 "cd /opt/nexfila-backend && git pull"
+            - ssh root@2.24.125.227 "cd /opt/nexfila-backend && docker compose down && docker compose up -d --build"

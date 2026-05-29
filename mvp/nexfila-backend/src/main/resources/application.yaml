@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: api-nexfila
+
+app:
+  version: 1.0.4
+
+server:
+  port: 8080
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
