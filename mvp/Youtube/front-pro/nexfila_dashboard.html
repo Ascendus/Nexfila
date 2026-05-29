@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nexfila — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg1:#0d0d1a; --bg2:#1a1a2e; --bg3:#0f172a;
+    --purple:#4F46E5; --cyan:#06B6D4;
+    --purple-light:#818CF8; --purple-pale:#C7D2FE;
+    --green:#059669; --red:#B91C1C; --orange:#B45309; --blue:#1D4ED8;
+    --white:#FFFFFF; --muted:rgba(255,255,255,0.45);
+    --border:rgba(79,70,229,0.25); --card-bg:rgba(26,26,46,0.8);
+    --sidebar-w:240px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg1);font-family:'Exo 2',sans-serif;color:var(--white);min-height:100vh;display:flex;overflow:hidden;}
+
+  /* Sidebar */
+  .sidebar {
+    width:var(--sidebar-w); min-height:100vh;
+    background:rgba(13,13,26,0.95);
+    border-right:1px solid var(--border);
+    display:flex; flex-direction:column;
+    position:fixed; left:0; top:0; bottom:0; z-index:100;
+    padding:1.5rem 0;
+    backdrop-filter:blur(20px);
+  }
+  .sidebar-logo {
+    padding:0 1.5rem 1.5rem;
+    border-bottom:1px solid var(--border);
+    text-align:center;
+  }
+  .sidebar-logo .icon { font-size:2rem; margin-bottom:.3rem; }
+  .sidebar-logo .name {
+    font-family:'Orbitron',sans-serif; font-size:1rem;
+    font-weight:900; letter-spacing:3px; color:var(--white);
+  }
+  .sidebar-logo .sub { font-size:.65rem; color:var(--cyan); letter-spacing:4px; }
+
+  .nav { flex:1; padding:1.2rem 0; }
+  .nav-section { font-size:.65rem; color:var(--muted); letter-spacing:3px;
+    padding:.5rem 1.5rem; text-transform:uppercase; margin-top:.5rem; }
+  .nav-item {
+    display:flex; align-items:center; gap:.8rem;
+    padding:.7rem 1.5rem; cursor:pointer;
+    color:var(--muted); font-size:.9rem; font-weight:500;
+    transition:all .2s; border-left:3px solid transparent;
+    text-decoration:none;
+  }
+  .nav-item:hover { color:var(--white); background:rgba(79,70,229,0.1); }
+  .nav-item.active {
+    color:var(--cyan); background:rgba(6,182,212,0.08);
+    border-left-color:var(--cyan);
+  }
+  .nav-item .icon { font-size:1.1rem; width:20px; text-align:center; }
+  .nav-badge {
+    margin-left:auto; background:var(--red);
+    color:#fff; font-size:.65rem; font-weight:700;
+    padding:.15rem .45rem; border-radius:20px;
+  }
+
+  .sidebar-user {
+    padding:1rem 1.5rem;
+    border-top:1px solid var(--border);
+    display:flex; align-items:center; gap:.8rem;
+  }
+  .user-avatar {
+    width:36px; height:36px; border-radius:50%;
+    background:linear-gradient(135deg,var(--purple),var(--cyan));
+    display:flex; align-items:center; justify-content:center;
+    font-size:.9rem; font-weight:700; flex-shrink:0;
+  }
+  .user-name { font-size:.85rem; font-weight:600; }
+  .user-role { font-size:.7rem; color:var(--cyan); }
+  .user-logout { margin-left:auto; color:var(--muted); cursor:pointer; font-size:1rem; }
+  .user-logout:hover { color:var(--red); }
+
+  /* Main */
+  .main { margin-left:var(--sidebar-w); flex:1; display:flex; flex-direction:column; min-height:100vh; overflow-y:auto; }
+
+  /* Topbar */
+  .topbar {
+    background:rgba(13,13,26,0.9); backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--border);
+    padding:1rem 2rem;
+    display:flex; align-items:center; justify-content:space-between;
+    position:sticky; top:0; z-index:50;
+  }
+  .topbar-title { font-family:'Orbitron',sans-serif; font-size:1rem; font-weight:700; letter-spacing:2px; }
+  .topbar-right { display:flex; align-items:center; gap:1rem; }
+  .topbar-time { font-size:.8rem; color:var(--cyan); font-family:'Orbitron',sans-serif; }
+  .status-dot { width:8px; height:8px; border-radius:50%; background:var(--green);
+    box-shadow:0 0 8px var(--green); animation:pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  /* Content */
+  .content { padding:2rem; flex:1; }
+
+  /* Stats grid */
+  .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1.2rem; margin-bottom:2rem; }
+  .stat-card {
+    background:var(--card-bg); border:1px solid var(--border);
+    border-radius:14px; padding:1.4rem;
+    position:relative; overflow:hidden;
+    transition:transform .2s, box-shadow .2s;
+    backdrop-filter:blur(8px);
+    animation:fade-up .5s both;
+  }
+  .stat-card:hover { transform:translateY(-3px); box-shadow:0 8px 30px rgba(79,70,229,0.15); }
+  .stat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+  .stat-card.blue::before  { background:linear-gradient(90deg,var(--purple),var(--cyan)); }
+  .stat-card.green::before { background:var(--green); }
+  .stat-card.orange::before{ background:var(--orange); }
+  .stat-card.red::before   { background:var(--red); }
+
+  .stat-label { font-size:.72rem; color:var(--muted); letter-spacing:2px; text-transform:uppercase; margin-bottom:.6rem; }
+  .stat-value { font-family:'Orbitron',sans-serif; font-size:2rem; font-weight:700; line-height:1; margin-bottom:.3rem; }
+  .stat-card.blue  .stat-value { color:var(--cyan); }
+  .stat-card.green .stat-value { color:#34d399; }
+  .stat-card.orange.stat-value { color:#fbbf24; }
+  .stat-card.red   .stat-value { color:#f87171; }
+  .stat-change { font-size:.75rem; color:var(--muted); }
+  .stat-change.up { color:#34d399; }
+  .stat-icon { position:absolute; right:1.2rem; top:1.2rem; font-size:1.8rem; opacity:.15; }
+
+  /* Main grid */
+  .main-grid { display:grid; grid-template-columns:1.4fr 1fr; gap:1.5rem; }
+
+  /* Section card */
+  .section-card {
+    background:var(--card-bg); border:1px solid var(--border);
+    border-radius:14px; overflow:hidden;
+    backdrop-filter:blur(8px);
+    animation:fade-up .5s .2s both;
+  }
+  .section-header {
+    padding:1.1rem 1.5rem;
+    border-bottom:1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .section-title { font-family:'Orbitron',sans-serif; font-size:.85rem; font-weight:700; letter-spacing:2px; color:var(--white); }
+  .section-badge {
+    font-size:.7rem; padding:.25rem .7rem; border-radius:20px;
+    font-weight:700; letter-spacing:1px;
+  }
+  .badge-live { background:rgba(5,150,105,.2); color:#34d399; border:1px solid rgba(5,150,105,.3); }
+  .badge-today { background:rgba(79,70,229,.2); color:var(--purple-light); border:1px solid var(--border); }
+
+  /* Fila table */
+  .fila-table { width:100%; border-collapse:collapse; }
+  .fila-table th {
+    font-size:.68rem; font-weight:700; color:var(--muted);
+    letter-spacing:2px; text-transform:uppercase;
+    padding:.8rem 1.5rem; text-align:left;
+    border-bottom:1px solid var(--border);
+  }
+  .fila-table td { padding:.9rem 1.5rem; border-bottom:1px solid rgba(79,70,229,0.1); font-size:.88rem; }
+  .fila-table tr:last-child td { border-bottom:none; }
+  .fila-table tr:hover td { background:rgba(79,70,229,0.05); }
+
+  .senha-num {
+    font-family:'Orbitron',sans-serif; font-size:1rem; font-weight:700;
+  }
+  .prioridade-badge {
+    display:inline-block; padding:.2rem .6rem; border-radius:20px;
+    font-size:.7rem; font-weight:700; letter-spacing:1px;
+  }
+  .p1 { background:rgba(185,28,28,.2); color:#f87171; border:1px solid rgba(185,28,28,.3); }
+  .p2 { background:rgba(180,83,9,.2);  color:#fbbf24; border:1px solid rgba(180,83,9,.3); }
+  .p3 { background:rgba(5,150,105,.2); color:#34d399; border:1px solid rgba(5,150,105,.3); }
+  .p4 { background:rgba(79,70,229,.2); color:var(--purple-light); border:1px solid var(--border); }
+
+  .status-badge {
+    display:inline-block; padding:.2rem .6rem; border-radius:20px;
+    font-size:.7rem; font-weight:700; letter-spacing:1px;
+  }
+  .aguardando { background:rgba(6,182,212,.1); color:var(--cyan); border:1px solid rgba(6,182,212,.2); }
+  .chamado    { background:rgba(79,70,229,.15); color:var(--purple-light); border:1px solid var(--border); }
+  .atendido   { background:rgba(5,150,105,.15); color:#34d399; border:1px solid rgba(5,150,105,.2); }
+
+  .espera-time { font-size:.78rem; color:var(--muted); }
+  .espera-time.urgent { color:#f87171; font-weight:600; }
+
+  /* Guiches panel */
+  .guiches-list { padding:1.2rem; display:flex; flex-direction:column; gap:.8rem; }
+  .guiche-item {
+    background:rgba(255,255,255,0.03); border:1px solid var(--border);
+    border-radius:10px; padding:1rem 1.2rem;
+    display:flex; align-items:center; gap:1rem;
+    transition:all .2s;
+  }
+  .guiche-item:hover { border-color:var(--cyan); background:rgba(6,182,212,0.05); }
+  .guiche-num {
+    width:40px; height:40px; border-radius:10px;
+    background:linear-gradient(135deg,var(--purple),var(--cyan));
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Orbitron',sans-serif; font-size:.9rem; font-weight:700;
+    flex-shrink:0;
+  }
+  .guiche-info { flex:1; }
+  .guiche-name { font-size:.9rem; font-weight:600; margin-bottom:.15rem; }
+  .guiche-atendente { font-size:.75rem; color:var(--muted); }
+  .guiche-status { display:flex; flex-direction:column; align-items:flex-end; gap:.3rem; }
+  .guiche-senha { font-family:'Orbitron',sans-serif; font-size:.85rem; color:var(--cyan); font-weight:700; }
+  .guiche-dot { width:8px; height:8px; border-radius:50%; }
+  .guiche-dot.ativo { background:var(--green); box-shadow:0 0 6px var(--green); }
+  .guiche-dot.inativo { background:var(--muted); }
+
+  /* Btn chamar */
+  .btn-chamar {
+    display:block; width:calc(100% - 2.4rem); margin:0 1.2rem 1.2rem;
+    padding:.85rem; text-align:center;
+    background:linear-gradient(135deg,var(--purple),var(--cyan));
+    border:none; border-radius:10px;
+    color:#fff; font-family:'Orbitron',sans-serif;
+    font-size:.78rem; font-weight:700; letter-spacing:2px;
+    cursor:pointer; transition:all .3s;
+  }
+  .btn-chamar:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(6,182,212,0.3); }
+
+  @keyframes fade-up {
+    from{opacity:0;transform:translateY(16px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar{width:4px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="icon">🚀</div>
+    <div class="name">NEXFILA</div>
+    <div class="sub">FILA PRIORITÁRIA</div>
+  </div>
+
+  <nav class="nav">
+    <div class="nav-section">Principal</div>
+    <a class="nav-item active" href="#">
+      <span class="icon">📊</span> Dashboard
+    </a>
+    <a class="nav-item" href="#">
+      <span class="icon">🎫</span> Fila de Senhas
+      <span class="nav-badge">12</span>
+    </a>
+    <a class="nav-item" href="#">
+      <span class="icon">🖥️</span> Painel TV
+    </a>
+    <a class="nav-item" href="#">
+      <span class="icon">📟</span> Totem
+    </a>
+
+    <div class="nav-section">Gerenciamento</div>
+    <a class="nav-item" href="#">
+      <span class="icon">🏦</span> Guichês
+    </a>
+    <a class="nav-item" href="#">
+      <span class="icon">👥</span> Usuários
+    </a>
+    <a class="nav-item" href="#">
+      <span class="icon">📋</span> Relatórios
+    </a>
+
+    <div class="nav-section">Sistema</div>
+    <a class="nav-item" href="#">
+      <span class="icon">⚙️</span> Configurações
+    </a>
+  </nav>
+
+  <div class="sidebar-user">
+    <div class="user-avatar">TF</div>
+    <div>
+      <div class="user-name">Nexfila</div>
+      <div class="user-role">ADMINISTRADOR</div>
+    </div>
+    <div class="user-logout">⏻</div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-title">DASHBOARD GERAL</div>
+    <div class="topbar-right">
+      <div class="status-dot"></div>
+      <div class="topbar-time" id="clock">00:00:00</div>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card blue" style="animation-delay:.05s">
+        <div class="stat-icon">🎫</div>
+        <div class="stat-label">Na Fila Agora</div>
+        <div class="stat-value">12</div>
+        <div class="stat-change">4 prioritários</div>
+      </div>
+      <div class="stat-card green" style="animation-delay:.1s">
+        <div class="stat-icon">✅</div>
+        <div class="stat-label">Atendidos Hoje</div>
+        <div class="stat-value" style="color:#34d399">84</div>
+        <div class="stat-change up">↑ 12% vs ontem</div>
+      </div>
+      <div class="stat-card orange" style="animation-delay:.15s">
+        <div class="stat-icon">⏱️</div>
+        <div class="stat-label">Tempo Médio</div>
+        <div class="stat-value" style="color:#fbbf24">8m</div>
+        <div class="stat-change">meta: 10min</div>
+      </div>
+      <div class="stat-card red" style="animation-delay:.2s">
+        <div class="stat-icon">🏦</div>
+        <div class="stat-label">Guichês Ativos</div>
+        <div class="stat-value" style="color:#f87171">3/5</div>
+        <div class="stat-change">2 inativos</div>
+      </div>
+    </div>
+
+    <!-- Main grid -->
+    <div class="main-grid">
+
+      <!-- Fila -->
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-title">FILA DE ATENDIMENTO</div>
+          <span class="section-badge badge-live">● AO VIVO</span>
+        </div>
+        <table class="fila-table">
+          <thead>
+            <tr>
+              <th>Senha</th>
+              <th>Prioridade</th>
+              <th>Status</th>
+              <th>Espera</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="senha-num" style="color:#f87171">A001</span></td>
+              <td><span class="prioridade-badge p1">P1 · Deficiente</span></td>
+              <td><span class="status-badge chamado">Chamado</span></td>
+              <td><span class="espera-time">2min</span></td>
+            </tr>
+            <tr>
+              <td><span class="senha-num" style="color:#fbbf24">B003</span></td>
+              <td><span class="prioridade-badge p2">P2 · Idoso</span></td>
+              <td><span class="status-badge aguardando">Aguardando</span></td>
+              <td><span class="espera-time urgent">18min ⚠</span></td>
+            </tr>
+            <tr>
+              <td><span class="senha-num" style="color:#fbbf24">B004</span></td>
+              <td><span class="prioridade-badge p2">P2 · Gestante</span></td>
+              <td><span class="status-badge aguardando">Aguardando</span></td>
+              <td><span class="espera-time">12min</span></td>
+            </tr>
+            <tr>
+              <td><span class="senha-num" style="color:#34d399">C002</span></td>
+              <td><span class="prioridade-badge p3">P3 · Criança</span></td>
+              <td><span class="status-badge aguardando">Aguardando</span></td>
+              <td><span class="espera-time">8min</span></td>
+            </tr>
+            <tr>
+              <td><span class="senha-num" style="color:var(--purple-light)">N018</span></td>
+              <td><span class="prioridade-badge p4">P4 · Normal</span></td>
+              <td><span class="status-badge aguardando">Aguardando</span></td>
+              <td><span class="espera-time">5min</span></td>
+            </tr>
+            <tr>
+              <td><span class="senha-num" style="color:var(--purple-light)">N019</span></td>
+              <td><span class="prioridade-badge p4">P4 · Normal</span></td>
+              <td><span class="status-badge atendido">Atendido</span></td>
+              <td><span class="espera-time">—</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Guiches -->
+      <div class="section-card" style="animation-delay:.3s">
+        <div class="section-header">
+          <div class="section-title">GUICHÊS</div>
+          <span class="section-badge badge-today">HOJE</span>
+        </div>
+        <div class="guiches-list">
+          <div class="guiche-item">
+            <div class="guiche-num">01</div>
+            <div class="guiche-info">
+              <div class="guiche-name">Caixa 01</div>
+              <div class="guiche-atendente">Ana Paula</div>
+            </div>
+            <div class="guiche-status">
+              <div class="guiche-senha">A001</div>
+              <div class="guiche-dot ativo"></div>
+            </div>
+          </div>
+          <div class="guiche-item">
+            <div class="guiche-num">02</div>
+            <div class="guiche-info">
+              <div class="guiche-name">Caixa 02</div>
+              <div class="guiche-atendente">Carlos Silva</div>
+            </div>
+            <div class="guiche-status">
+              <div class="guiche-senha">B003</div>
+              <div class="guiche-dot ativo"></div>
+            </div>
+          </div>
+          <div class="guiche-item">
+            <div class="guiche-num">03</div>
+            <div class="guiche-info">
+              <div class="guiche-name">Caixa 03</div>
+              <div class="guiche-atendente">Maria Santos</div>
+            </div>
+            <div class="guiche-status">
+              <div class="guiche-senha">N015</div>
+              <div class="guiche-dot ativo"></div>
+            </div>
+          </div>
+          <div class="guiche-item" style="opacity:.5">
+            <div class="guiche-num" style="background:#1e2240">04</div>
+            <div class="guiche-info">
+              <div class="guiche-name">Caixa 04</div>
+              <div class="guiche-atendente">— inativo</div>
+            </div>
+            <div class="guiche-status">
+              <div class="guiche-dot inativo"></div>
+            </div>
+          </div>
+          <div class="guiche-item" style="opacity:.5">
+            <div class="guiche-num" style="background:#1e2240">05</div>
+            <div class="guiche-info">
+              <div class="guiche-name">Caixa 05</div>
+              <div class="guiche-atendente">— inativo</div>
+            </div>
+            <div class="guiche-status">
+              <div class="guiche-dot inativo"></div>
+            </div>
+          </div>
+        </div>
+        <button class="btn-chamar">⚡ CHAMAR PRÓXIMO</button>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<script>
+  function updateClock(){
+    const now=new Date();
+    document.getElementById('clock').textContent=
+      now.toLocaleTimeString('pt-BR');
+  }
+  updateClock(); setInterval(updateClock,1000);
+</script>
+</body>
+</html>
