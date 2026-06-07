@@ -13,5 +13,3 @@ backend Java/Spring Boot + frontend React/TypeScript + Docker + VPS + HTTPS + CI
 - **Frontend:** React + TypeScript + Vite
 - **Infra:** Docker + Nginx + Let's Encrypt + Hostinger KVM 2
 
-## 📚 Sobre
-Projeto do curso [Ascendus](https://ascendus.com.br) — do zero ao deploy em produção.
