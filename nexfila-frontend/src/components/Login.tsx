@@ -6,7 +6,7 @@ interface LoginProps {
 
 function Login({ onLogin }: LoginProps) {
     
-    const [email, setEmail] = useState('thiago@nexfila.com.br')
+    const [email, setEmail] = useState('alisson@nexfila.com.br')
     const [senha, setSenha] = useState('123456')
     const [erro, setErro] = useState('')
 
